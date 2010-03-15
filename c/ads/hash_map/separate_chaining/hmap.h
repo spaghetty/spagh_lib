@@ -13,6 +13,10 @@
 #define __conflicted_stuff(f)                   \
   (f!=NULL)
 
+#define __initialize_follower(f)		\
+  f->nxt->nxt=NULL;				\
+  f->nxt->prv=f;
+
 typedef enum
   {
     FIND,

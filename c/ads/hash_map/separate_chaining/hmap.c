@@ -42,7 +42,7 @@ int hsearch (ENTRY __item, ACTION __action, ENTRY **__retval,
   elm = &(__htab->table[idx]);
   if (elm->data.key != NULL)
     printf ("%s ----%s\n", __item.key, elm->data.key);
-  if (__is_clean(elm))  /* placement clean as was just crated */
+  if (__is_clean (elm))  /* placement clean as was just crated */
     {
       if (__action==ENTER)
         {
@@ -71,7 +71,12 @@ int hsearch (ENTRY __item, ACTION __action, ENTRY **__retval,
               if (__action == ENTER)
                 {
                   if (elm->nxt == NULL)
-                    printf ("i should insert now\n");
+		    {
+		      elm->nxt = malloc(sizeof(struct _ENTRY));
+		      __initialize_follower (elm);
+		      elm->nxt->data = __item;
+		      *__retval = &(elm->nxt->data);
+		    }
                 }
             }
           elm = elm->nxt;
