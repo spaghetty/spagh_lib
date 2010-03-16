@@ -38,7 +38,7 @@ typedef struct hsearch_data
 {
   struct _ENTRY *table;
   unsigned int size;
-  int (*hf) (char*, unsigned int);
+  unsigned int (*hf) (char*, unsigned int);
 } hsearch_data;
 
 

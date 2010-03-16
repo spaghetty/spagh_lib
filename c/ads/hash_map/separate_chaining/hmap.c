@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include "fnv/fnv.h"
 
 struct _ENTRY {
   ENTRY data;
@@ -9,7 +10,7 @@ struct _ENTRY {
   struct _ENTRY *prv;
 };
 
-int std_hf(char *,unsigned int range);
+unsigned int std_hf(char *,unsigned int range);
 
 int hcreate (int __base, hsearch_data *__htab)
 {
@@ -18,7 +19,7 @@ int hcreate (int __base, hsearch_data *__htab)
   __htab->table = (struct _ENTRY *)malloc(sizeof(struct _ENTRY)*__base);
   for(i = 0; i< __base; i++)
       __htab->table[i].prv = __htab->table[i].nxt = &(__htab->table[i]);
-  __htab->hf = std_hf;
+  __htab->hf = fnv_32;
   return 1;
 };
 
@@ -38,6 +39,7 @@ int hsearch (ENTRY __item, ACTION __action, ENTRY **__retval,
   if (__htab->size == 0 || __item.key == NULL)
     return -1;
   idx = __htab->hf (__item.key, __htab->size);
+  printf("idx--->%d\n",idx);
   if (idx == -1)
     return -2;
   elm = &(__htab->table[idx]);
@@ -79,7 +81,7 @@ int hsearch (ENTRY __item, ACTION __action, ENTRY **__retval,
   return 1;
 }
 
-int std_hf(char *key,unsigned int range)
+unsigned int std_hf(char *key,unsigned int range)
 {
   int len = strlen(key); /* just a place holder */
   return len%range;
