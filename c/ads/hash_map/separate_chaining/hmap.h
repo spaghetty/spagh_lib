@@ -4,8 +4,10 @@
 /* Action which shall be performed in the call the hsearch.  */
 
 #define __is_clean(f)                           \
-  (f->nxt == f->prv &&                          \
-   f == f->nxt)
+  (f->nxt == f->prv &&				\
+   f->nxt != NULL &&				\
+   f->prv != NULL )
+
 #define __make_dirty(f)                         \
   f->prv = NULL;                                \
   f->nxt = NULL;

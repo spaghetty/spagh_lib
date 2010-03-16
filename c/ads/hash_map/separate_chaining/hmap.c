@@ -24,6 +24,7 @@ int hcreate (int __base, hsearch_data *__htab)
 
 void hdestroy (hsearch_data *__htab)
 {
+  printf("strart transhing\n");
   free(__htab->table);
   __htab->size = 0;
 }
@@ -40,15 +41,19 @@ int hsearch (ENTRY __item, ACTION __action, ENTRY **__retval,
   if (idx == -1)
     return -2;
   elm = &(__htab->table[idx]);
+  printf("%x placement0: %x\n",elm, elm->nxt);
   if (elm->data.key != NULL)
     printf ("%s ----%s\n", __item.key, elm->data.key);
   if (__is_clean (elm))  /* placement clean as was just crated */
     {
       if (__action==ENTER)
         {
-          elm->data = __item;
+	  printf("placement1: %x\n", elm->nxt);
+          elm->data.key = __item.key;
+	  elm->data.data = __item.data;
           __make_dirty (elm);
-          *__retval = &__item;
+          *__retval = &(elm->data);
+	  printf("placement2: %x\n", elm->nxt);
         }
       else
         {
@@ -60,6 +65,7 @@ int hsearch (ENTRY __item, ACTION __action, ENTRY **__retval,
       printf ("no so clean\n");
       while (__conflicted_stuff (elm) && *__retval == NULL)
         {
+	  printf("sdfshadifsdih %s\n",elm->data.key);
           if (strcmp (elm->data.key, __item.key) == 0)
             {
               printf ("i shouldn't be here %s , %s \n", elm->data.key, __item.key);
@@ -68,21 +74,18 @@ int hsearch (ENTRY __item, ACTION __action, ENTRY **__retval,
           else
             {
               printf ("i should be here \n");
-              if (__action == ENTER)
+              if (__action == ENTER && elm->nxt == NULL)
                 {
-                  if (elm->nxt == NULL)
-		    {
-		      elm->nxt = malloc(sizeof(struct _ENTRY));
-		      __initialize_follower (elm);
-		      elm->nxt->data = __item;
-		      *__retval = &(elm->nxt->data);
-		    }
+		  elm->nxt = malloc(sizeof(struct _ENTRY));
+		  __initialize_follower (elm);
+		  elm->nxt->data = __item;
+		  *__retval = &(elm->nxt->data);
                 }
             }
           elm = elm->nxt;
         }
     }
-  printf("placement: %d\n", idx);
+  printf("placement3: %x\n", elm->nxt);
   return 1;
 }
 
