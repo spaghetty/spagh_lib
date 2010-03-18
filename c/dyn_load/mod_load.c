@@ -1,5 +1,6 @@
 #include "mod_load.h"
 #include <dirent.h>
+#include <dlfcn.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -33,4 +34,22 @@ int module_search(char *name, char ***list)
     } 
   free(f1);
   return size;
+}
+
+int module_load(char *fname, plug_t* plug)
+{
+  lac_init_f init;
+  char *tmp = malloc(sizeof(char)*(strlen(fname)+2));
+  *tmp = '.';
+  *(tmp+1) = '/';
+  strcpy(tmp+2,fname);
+  (*plug) = dlopen (tmp, RTLD_NOW);
+  if (!(*plug))
+    {
+      printf ("Cannot load %s: %s\n", tmp, dlerror ());
+      return 0;
+    }
+  init = dlsym ((*plug), "init_f");
+  init ();
+  return 1;
 }
