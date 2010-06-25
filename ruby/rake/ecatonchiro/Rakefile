@@ -1,13 +1,28 @@
 # -*- ruby -*-
 
+git_repo="serv_tree"
+
+desc "Task for basic config file creation"
+task :base_conf do
+  sh "touch .config"
+end
 
 desc "Task base per inizializzare il sistema di controllo"
 task :init, :repo do |t,args|
-  sh "git init ."
+  rep = args.repo
+  if rep and not File.exist? "#{git_repo}/.git"
+    sh "git clone #{rep} #{git_repo}"
+  else
+    if not File.exist?("#{git_repo}/.git")
+      sh "git init #{git_repo}"
+    end
+  end
+    Rake::Task[:base_conf].invoke
 end
 
 
-desc "Start Controlling new host"
-task :add_host, [ :name ]=> [".git", "lib"] do |t, args|
-  sh "mkdir #{args.name}"
+desc "Start Controlling new host, type can be ssh or type"
+task :add_host, [ :ip, :conn_type, :user, :passwd ]=> ["#{git_repo}/.git", ".config", "lib"] do |t, args|
+  sh "mkdir #{git_repo}/#{args.ip}"
+  sh "echo '#{args.conn_type}:#{args.ip},#{args.user},#{args.passwd}'>>.config"
 end
