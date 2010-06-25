@@ -1,0 +1,13 @@
+# -*- ruby -*-
+
+
+desc "Task base per inizializzare il sistema di controllo"
+task :init, :repo do |t,args|
+  sh "git init ."
+end
+
+
+desc "Start Controlling new host"
+task :add_host, [ :name ]=> [".git", "lib"] do |t, args|
+  sh "mkdir #{args.name}"
+end
