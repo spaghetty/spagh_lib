@@ -2,6 +2,31 @@
 
 git_repo="serv_tree"
 
+class HostDescriptor
+  attr_accessor :ip, :uname, :key, :path, :type
+  def initialize(type, ip, uname)
+    @type = type.strip()
+    @ip = ip.strip()
+    @uname = uname.strip()
+  end
+
+  def get_ssh_string()
+    return "#{@uname}@#{@ip}:"
+  end
+
+  def self.find_by_ip(ip)
+    found = nil
+    git_repo="serv_tree"
+    if File.exists? "#{git_repo}/#{ip}/.ecatonchiro"
+      f = File.open("#{git_repo}/#{ip}/.ecatonchiro", "r")
+      desc = f.gets()
+      el = desc.split(":")
+      found = HostDescriptor.new(el[1], el[0], el[2])
+    end
+    return found
+  end
+end
+
 desc "Task for basic config file creation"
 task :base_conf do
   sh "touch .config"
@@ -21,8 +46,45 @@ task :init, :repo do |t,args|
 end
 
 
-desc "Start Controlling new host, type can be ssh or type"
-task :add_host, [ :ip, :conn_type, :user, :passwd ]=> ["#{git_repo}/.git", ".config", "lib"] do |t, args|
+desc "Start Controlling new host, type can be ssh or sshey"
+task :add_host, [ :ip, :conn_type, :user ]=> ["#{git_repo}/.git", "lib"] do |t, args|
   sh "mkdir #{git_repo}/#{args.ip}"
-  sh "echo '#{args.conn_type}:#{args.ip},#{args.user},#{args.passwd}'>>.config"
+  sh "echo '#{args.ip}:#{args.conn_type}:#{args.user}'>>#{git_repo}/#{args.ip}/.ecatonchiro"
 end
+
+desc "Remove host from be controlled"
+task :del_host, [ :ip ] do |t, args|
+  sh "rm -rf #{git_repo}/#{args.ip}"
+end
+  
+
+desc "Choose a ssh_key for specific host"
+task :save_key, [ :ip, :key_file ] => [ "#{git_repo}/.git" ] do |t, args|
+  sh "cp #{args.key_file} #{git_repo}/#{args.ip}/.ssh_key"
+end 
+
+
+desc "List all managed host"
+task :list => [ "#{git_repo}" ] do 
+  Dir.foreach("#{git_repo}") { | x | puts "#{x}" if not x[0].chr=='.' }
+end
+
+
+desc "acquire file from remote server"
+task :acquire, [ :ip, :path, :selector] do |t, args|
+  h = HostDescriptor.find_by_ip(args.ip)
+  if not File.exists? "#{git_repo}/#{args.ip}#{args.path}"
+    Dir.mkdir("#{git_repo}/#{args.ip}#{args.path}")
+  end
+  sh "scp -r #{h.get_ssh_string}#{args.path}#{args.selector} #{git_repo}/#{args.ip}#{args.path}"
+end
+
+
+desc "acquire file from remote server"
+task :push, [ :ip, :path, :selector] do |t, args|
+  h = HostDescriptor.find_by_ip(args.ip)
+  if File.exists? "#{git_repo}/#{args.ip}#{args.path}"
+    sh "scp -r #{git_repo}/#{args.ip}#{args.path}#{args.selector} #{h.get_ssh_string}#{args.path}"
+  end
+end
+
