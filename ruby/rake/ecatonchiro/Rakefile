@@ -24,9 +24,19 @@ end
 
 
 desc "Start Controlling new host, type can be ssh or sshey"
-task :add_host, [ :ip, :conn_type, :user ]=> ["#{GIT_REPO}/.git", "lib"] do |t, args|
+task :add_host, [ :ip, :conn_type, :user ]=> ["#{GIT_REPO}", "lib"] do |t, args|
   sh "mkdir #{GIT_REPO}/#{args.ip}"
   sh "echo '#{args.ip}:#{args.conn_type}:#{args.user}'>>#{GIT_REPO}/#{args.ip}/.ecatonchiro"
+end
+
+desc "Aggiungi un alias per un host"
+task :add_alias, [ :ip, :alias ] do |t, args|
+  sh "ln -s #{args.ip} #{GIT_REPO}/#{args.alias}"
+end
+
+desc "Rimuovi un alias per un host"
+task :del_alias, [ :alias ] do |t, args|
+  sh "rm #{GIT_REPO}/#{args.alias}"
 end
 
 desc "Remove host from be controlled"
@@ -36,14 +46,22 @@ end
   
 
 desc "Choose a ssh_key for specific host"
-task :save_key, [ :ip, :key_file ] => [ "#{GIT_REPO}/.git" ] do |t, args|
+task :save_key, [ :ip, :key_file ] => [ "#{GIT_REPO}/" ] do |t, args|
   sh "cp #{args.key_file} #{GIT_REPO}/#{args.ip}/.ssh_key"
 end 
 
 
 desc "List all managed host"
 task :list => [ "#{GIT_REPO}" ] do 
-  Dir.foreach("#{GIT_REPO}") { | x | puts "#{x}" if not x[0].chr=='.' }
+  Dir.foreach("#{GIT_REPO}") do | x | 
+    if File.directory? File.join(GIT_REPO, x) and not x[0].chr=='.' 
+      if File.symlink? File.join(GIT_REPO, x) 
+        puts "#{x} --> #{File.readlink(File.join(GIT_REPO, x))}"
+      else
+        puts "#{x}"
+      end
+    end
+  end
 end
 
 
@@ -56,7 +74,7 @@ task :acquire_as_root, [ :ip, :path, :selector] do |t, args|
   sh "scp -r #{h.get_ssh_string}:#{args.path}#{args.selector} #{GIT_REPO}/#{args.ip}#{args.path}"
 end
 
-desc "push file to remote server"
+desc "push file to remote server as root"
 task :push_as_root, [ :ip, :path, :selector] do |t, args|
   h = HostDescriptor.find_by_ip(args.ip)
   if File.exists? "#{GIT_REPO}/#{args.ip}#{args.path}"
@@ -69,7 +87,6 @@ task :execute_as_root, [ :ip, :command ] do |t, args|
   h = HostDescriptor.find_by_ip(args.ip)
   sh "ssh #{h.get_ssh_string} \"#{args.command}\""
 end
-
 
 desc "acquire file from remote server"
 task :acquire, [ :ip, :path, :selector] do |t, args|
@@ -106,3 +123,8 @@ task :dhcpd_restart, [ :ip ] do |t, args|
   Rake::Task[:execute].invoke(args.ip, "service dhcpd restart")
 end
   
+desc "ssh session"
+task :ssh, [ :ip ] do |t, args|
+  h = HostDescriptor.find_by_ip(args.ip)
+  sh "ssh #{h.get_ssh_string}"
+end

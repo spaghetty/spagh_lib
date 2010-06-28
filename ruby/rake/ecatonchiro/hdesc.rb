@@ -16,12 +16,16 @@ class HostDescriptor
     return (not @uname=="root")
   end
   
-  def has_hey=(val)
+  def has_key=(val)
     @has_key = val
   end
 
   def get_ssh_string()
-    return "#{@uname}@#{@ip}"
+    res = "#{@uname}@#{@ip}"
+    if @has_key
+      res = "-i #{GIT_REPO}/#{ip}/.ssh_key #{@uname}@#{@ip}" 
+    end
+    return res
   end
 
   def get_key_file()
