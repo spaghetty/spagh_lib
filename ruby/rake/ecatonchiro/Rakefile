@@ -1,31 +1,8 @@
 # -*- ruby -*-
 
-git_repo="serv_tree"
+GIT_REPO="serv_tree"
 
-class HostDescriptor
-  attr_accessor :ip, :uname, :key, :path, :type
-  def initialize(type, ip, uname)
-    @type = type.strip()
-    @ip = ip.strip()
-    @uname = uname.strip()
-  end
-
-  def get_ssh_string()
-    return "#{@uname}@#{@ip}:"
-  end
-
-  def self.find_by_ip(ip)
-    found = nil
-    git_repo="serv_tree"
-    if File.exists? "#{git_repo}/#{ip}/.ecatonchiro"
-      f = File.open("#{git_repo}/#{ip}/.ecatonchiro", "r")
-      desc = f.gets()
-      el = desc.split(":")
-      found = HostDescriptor.new(el[1], el[0], el[2])
-    end
-    return found
-  end
-end
+require "lib/hdesc.rb"
 
 desc "Task for basic config file creation"
 task :base_conf do
@@ -35,11 +12,11 @@ end
 desc "Task base per inizializzare il sistema di controllo"
 task :init, :repo do |t,args|
   rep = args.repo
-  if rep and not File.exist? "#{git_repo}/.git"
-    sh "git clone #{rep} #{git_repo}"
+  if rep and not File.exist? "#{GIT_REPO}/.git"
+    sh "git clone #{rep} #{GIT_REPO}"
   else
-    if not File.exist?("#{git_repo}/.git")
-      sh "git init #{git_repo}"
+    if not File.exist?("#{GIT_REPO}/.git")
+      sh "git init #{GIT_REPO}"
     end
   end
     Rake::Task[:base_conf].invoke
@@ -47,44 +24,85 @@ end
 
 
 desc "Start Controlling new host, type can be ssh or sshey"
-task :add_host, [ :ip, :conn_type, :user ]=> ["#{git_repo}/.git", "lib"] do |t, args|
-  sh "mkdir #{git_repo}/#{args.ip}"
-  sh "echo '#{args.ip}:#{args.conn_type}:#{args.user}'>>#{git_repo}/#{args.ip}/.ecatonchiro"
+task :add_host, [ :ip, :conn_type, :user ]=> ["#{GIT_REPO}/.git", "lib"] do |t, args|
+  sh "mkdir #{GIT_REPO}/#{args.ip}"
+  sh "echo '#{args.ip}:#{args.conn_type}:#{args.user}'>>#{GIT_REPO}/#{args.ip}/.ecatonchiro"
 end
 
 desc "Remove host from be controlled"
 task :del_host, [ :ip ] do |t, args|
-  sh "rm -rf #{git_repo}/#{args.ip}"
+  sh "rm -rf #{GIT_REPO}/#{args.ip}"
 end
   
 
 desc "Choose a ssh_key for specific host"
-task :save_key, [ :ip, :key_file ] => [ "#{git_repo}/.git" ] do |t, args|
-  sh "cp #{args.key_file} #{git_repo}/#{args.ip}/.ssh_key"
+task :save_key, [ :ip, :key_file ] => [ "#{GIT_REPO}/.git" ] do |t, args|
+  sh "cp #{args.key_file} #{GIT_REPO}/#{args.ip}/.ssh_key"
 end 
 
 
 desc "List all managed host"
-task :list => [ "#{git_repo}" ] do 
-  Dir.foreach("#{git_repo}") { | x | puts "#{x}" if not x[0].chr=='.' }
+task :list => [ "#{GIT_REPO}" ] do 
+  Dir.foreach("#{GIT_REPO}") { | x | puts "#{x}" if not x[0].chr=='.' }
+end
+
+
+desc "acquire file from remote server with root permission"
+task :acquire_as_root, [ :ip, :path, :selector] do |t, args|
+  h = HostDescriptor.find_by_ip(args.ip)
+  if not File.exists? "#{GIT_REPO}/#{args.ip}#{args.path}"
+    Dir.mkdir("#{GIT_REPO}/#{args.ip}#{args.path}")
+  end
+  sh "scp -r #{h.get_ssh_string}:#{args.path}#{args.selector} #{GIT_REPO}/#{args.ip}#{args.path}"
+end
+
+desc "push file to remote server"
+task :push_as_root, [ :ip, :path, :selector] do |t, args|
+  h = HostDescriptor.find_by_ip(args.ip)
+  if File.exists? "#{GIT_REPO}/#{args.ip}#{args.path}"
+    sh "scp -r #{GIT_REPO}/#{args.ip}#{args.path}#{args.selector} #{h.get_ssh_string}:#{args.path}"
+  end
+end
+
+desc "execute command on remote machine"
+task :execute_as_root, [ :ip, :command ] do |t, args|
+  h = HostDescriptor.find_by_ip(args.ip)
+  sh "ssh #{h.get_ssh_string} \"#{args.command}\""
 end
 
 
 desc "acquire file from remote server"
 task :acquire, [ :ip, :path, :selector] do |t, args|
   h = HostDescriptor.find_by_ip(args.ip)
-  if not File.exists? "#{git_repo}/#{args.ip}#{args.path}"
-    Dir.mkdir("#{git_repo}/#{args.ip}#{args.path}")
+  if h.need_sudo?
+    puts "we still don't manage sudo based stuff"
+  else
+    Rake::Task[:acquire_as_root].invoke(args.ip, args.path, args.selector)
   end
-  sh "scp -r #{h.get_ssh_string}#{args.path}#{args.selector} #{git_repo}/#{args.ip}#{args.path}"
 end
-
 
 desc "acquire file from remote server"
 task :push, [ :ip, :path, :selector] do |t, args|
   h = HostDescriptor.find_by_ip(args.ip)
-  if File.exists? "#{git_repo}/#{args.ip}#{args.path}"
-    sh "scp -r #{git_repo}/#{args.ip}#{args.path}#{args.selector} #{h.get_ssh_string}#{args.path}"
+  if h.need_sudo?
+    puts "we still don't manage sudo based stuff"
+  else
+    Rake::Task[:push_as_root].invoke(args.ip, args.path, args.selector)
   end
 end
 
+desc "acquire file from remote server"
+task :execute, [ :ip, :command ] do |t, args|
+  h = HostDescriptor.find_by_ip(args.ip)
+  if h.need_sudo?
+    puts "we still don't manage sudo based stuff"
+  else
+    Rake::Task[:execute_as_root].invoke(args.ip, args.command)
+  end
+end
+
+desc "restart dhcp services"
+task :dhcpd_restart, [ :ip ] do |t, args|
+  Rake::Task[:execute].invoke(args.ip, "service dhcpd restart")
+end
+  
