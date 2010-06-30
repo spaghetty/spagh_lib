@@ -4,7 +4,6 @@ GIT_REPO="serv_tree"
 
 require "lib/hdesc.rb"
 
-desc "Task for basic config file creation"
 task :base_conf do
   sh "touch .config"
 end
@@ -43,6 +42,7 @@ task :del_host, [ :ip ] do |t, args|
   sh "rm -rf #{GIT_REPO}/#{args.ip}"
 end
 
+desc "Change passphrase for key file"
 task :change_key, [ :ip ] do |t, args|
   sh "ssh-keygen -p -f #{GIT_REPO}/#{args.ip}/.ssh_key"
 end
@@ -69,7 +69,7 @@ task :list => [ "#{GIT_REPO}" ] do
   end
 end
 
-desc "acquire file from remote server with root permission"
+
 task :acquire_as_root, [ :ip, :path, :selector] do |t, args|
   h = HostDescriptor.find_by_ip(args.ip)
   if not File.exists? "#{GIT_REPO}/#{args.ip}#{args.path}"
@@ -78,7 +78,7 @@ task :acquire_as_root, [ :ip, :path, :selector] do |t, args|
   sh "scp -r #{h.get_ssh_string}:#{args.path}#{args.selector} #{GIT_REPO}/#{args.ip}#{args.path}"
 end
 
-desc "push file to remote server as root"
+
 task :push_as_root, [ :ip, :path, :selector] do |t, args|
   h = HostDescriptor.find_by_ip(args.ip)
   if File.exists? "#{GIT_REPO}/#{args.ip}#{args.path}"
@@ -86,7 +86,6 @@ task :push_as_root, [ :ip, :path, :selector] do |t, args|
   end
 end
 
-desc "execute command on remote machine"
 task :execute_as_root, [ :ip, :command ] do |t, args|
   h = HostDescriptor.find_by_ip(args.ip)
   sh "ssh #{h.get_ssh_string} \"#{args.command}\""
