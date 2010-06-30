@@ -1,10 +1,10 @@
-
 class HostDescriptor
-  attr_accessor :ip, :uname, :path, :type
-  def initialize(type, ip, uname)
+  attr_accessor :ip, :uname, :passwd, :path, :type
+  def initialize(type, ip, uname, pass)
     @type = type.strip()
     @ip = ip.strip()
     @uname = uname.strip()
+    @passwd = pass.strip()
     has_key = false
   end
   
@@ -38,7 +38,7 @@ class HostDescriptor
       f = File.open("#{GIT_REPO}/#{ip}/.ecatonchiro", "r")
       desc = f.gets()
       el = desc.split(":")
-      found = HostDescriptor.new(el[1], el[0], el[2])
+      found = HostDescriptor.new(el[1], el[0], el[2], el[3])
       if File.exists? "#{GIT_REPO}/#{ip}/.ssh_key"
         found.has_key = true
       end
