@@ -1,0 +1,7 @@
+[home_cabelo_sshpass]
+name=Non-interactive ssh password auth (Fedora_12)
+type=rpm-md
+baseurl=http://download.opensuse.org/repositories/home:/cabelo:/sshpass/Fedora_12/
+gpgcheck=1
+gpgkey=http://download.opensuse.org/repositories/home:/cabelo:/sshpass/Fedora_12/repodata/repomd.xml.key
+enabled=1
