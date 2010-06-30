@@ -48,6 +48,7 @@ end
 desc "Choose a ssh_key for specific host"
 task :save_key, [ :ip, :key_file ] => [ "#{GIT_REPO}/" ] do |t, args|
   sh "cp #{args.key_file} #{GIT_REPO}/#{args.ip}/.ssh_key"
+  sh "chmod 0600 #{GIT_REPO}/#{args.ip}/.ssh_key"
 end 
 
 
@@ -93,6 +94,7 @@ task :acquire, [ :ip, :path, :selector] do |t, args|
   h = HostDescriptor.find_by_ip(args.ip)
   if h.need_sudo?
     puts "we still don't manage sudo based stuff"
+    Rake::Task[:acquire_as_root].invoke(args.ip, args.path, args.selector)
   else
     Rake::Task[:acquire_as_root].invoke(args.ip, args.path, args.selector)
   end
