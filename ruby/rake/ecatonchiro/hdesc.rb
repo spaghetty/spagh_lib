@@ -21,9 +21,9 @@ class HostDescriptor
   end
 
   def get_ssh_string()
-    res = "#{@uname}@#{@ip}"
+    res = "-o StrictHostKeyChecking=no #{@uname}@#{@ip}"
     if @has_key
-      res = "-i #{GIT_REPO}/#{ip}/.ssh_key #{@uname}@#{@ip}" 
+      res = "-o StrictHostKeyChecking=no -i #{GIT_REPO}/#{ip}/.ssh_key #{@uname}@#{@ip}" 
     end
     return res
   end
