@@ -77,14 +77,14 @@ task :acquire_as_root, [ :ip, :path, :selector] do |t, args|
   if not File.exists? "#{GIT_REPO}/#{args.ip}#{args.path}"
     sh "mkdir -p #{GIT_REPO}/#{args.ip}#{args.path}"
   end
-  sh "scp -r #{h.get_ssh_string}:#{args.path}#{args.selector} #{GIT_REPO}/#{args.ip}#{args.path}"
+  sh "#{h.get_scp_complete} #{h.get_ssh_string}:#{args.path}#{args.selector} #{GIT_REPO}/#{args.ip}#{args.path}"
 end
 
 
 task :push_as_root, [ :ip, :path, :selector] do |t, args|
   h = HostDescriptor.find_by_ip(args.ip)
   if File.exists? "#{GIT_REPO}/#{args.ip}#{args.path}"
-    sh "scp -r #{GIT_REPO}/#{args.ip}#{args.path}#{args.selector} #{h.get_ssh_string}:#{args.path}"
+    sh "#{h.get_scp_complete} #{GIT_REPO}/#{args.ip}#{args.path}#{args.selector} #{h.get_ssh_string}:#{args.path}"
   end
 end
 

@@ -21,21 +21,26 @@ class HostDescriptor
   end
 
   def get_ssh_string()
-    res = "-o StrictHostKeyChecking=no #{@uname}@#{@ip}"
+    return "#{@uname}@#{@ip}"
+  end
+
+  def get_ssh_complete()
+    res = "sshpass -p #{@passwd} ssh -o StrictHostKeyChecking=no"
     if @has_key
-      res = "-o StrictHostKeyChecking=no -i #{GIT_REPO}/#{ip}/.ssh_key #{@uname}@#{@ip}" 
+      res = "ssh -o StrictHostKeyChecking=no -i #{GIT_REPO}/#{ip}/.ssh_key" 
+    end
+    res = res + " " + get_ssh_string()
+    return res
+  end
+      
+  def get_scp_complete()
+    res = "sshpass -p #{@passwd} scp -r -o StrictHostKeyChecking=no"
+    if @has_key
+      res = "scp -r -o StrictHostKeyChecking=no -i #{GIT_REPO}/#{ip}/.ssh_key" 
     end
     return res
   end
 
-  def get_ssh_complete()
-    res = "ssh"
-    if not @has_key and @passwd != ""
-      res = "sshpass -p #{@passwd} ssh" 
-    end
-    res = res + " " + get_ssh_string()
-  end
-      
   def get_key_file()
     return "#{GIT_REPO}/#{ip}/.ssh_key"
   end
