@@ -71,7 +71,6 @@ task :list => [ "#{GIT_REPO}" ] do
   end
 end
 
-
 task :acquire_as_root, [ :ip, :path, :selector] do |t, args|
   h = HostDescriptor.find_by_ip(args.ip)
   if not File.exists? "#{GIT_REPO}/#{args.ip}#{args.path}"
@@ -124,11 +123,6 @@ task :execute, [ :ip, :command ] do |t, args|
   end
 end
 
-desc "restart dhcp services"
-task :dhcpd_restart, [ :ip ] do |t, args|
-  Rake::Task[:execute].invoke(args.ip, "service dhcpd restart")
-end
-  
 desc "ssh session"
 task :ssh, [ :ip ] do |t, args|
   h = HostDescriptor.find_by_ip(args.ip)
