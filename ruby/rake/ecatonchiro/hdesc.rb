@@ -28,6 +28,14 @@ class HostDescriptor
     return res
   end
 
+  def get_ssh_complete()
+    res = "ssh"
+    if not @has_key and @passwd != ""
+      res = "sshpass -p #{@passwd} ssh" 
+    end
+    res = res + " " + get_ssh_string()
+  end
+      
   def get_key_file()
     return "#{GIT_REPO}/#{ip}/.ssh_key"
   end

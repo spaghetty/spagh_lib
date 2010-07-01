@@ -4,6 +4,8 @@ GIT_REPO="serv_tree"
 
 require "lib/hdesc.rb"
 
+Dir.glob('serv_tree/.tasks/*.rake').each { |r| import r }
+
 task :base_conf do
   sh "touch .config"
 end
@@ -88,7 +90,7 @@ end
 
 task :execute_as_root, [ :ip, :command ] do |t, args|
   h = HostDescriptor.find_by_ip(args.ip)
-  sh "ssh #{h.get_ssh_string} \"#{args.command}\""
+  sh "#{h.get_ssh_complete} \"#{args.command}\""
 end
 
 desc "acquire file from remote server"
@@ -130,9 +132,6 @@ end
 desc "ssh session"
 task :ssh, [ :ip ] do |t, args|
   h = HostDescriptor.find_by_ip(args.ip)
-  if h.has_key?
-    sh "ssh #{h.get_ssh_string}"
-  else
-    sh "sshpass -p #{h.passwd} ssh #{h.get_ssh_string}"
-  end
+  sh "#{h.get_ssh_complete}"
+
 end
