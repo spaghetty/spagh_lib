@@ -36,5 +36,5 @@
 ; define square root of x as initial try of one
 (define (sqrt x) (try 1.0 x))
 
-(display (sqrt 9))
+(display (sqrt 4))
 (display "\n")
