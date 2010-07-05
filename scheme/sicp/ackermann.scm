@@ -30,3 +30,6 @@
 
 ;(display (akm 3 3))
 ;(display "\n")
+
+(display (akm 3 2))
+(display "\n")
