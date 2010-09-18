@@ -1,0 +1,32 @@
+\documentclass[a4paper,helvetica,flagCMYK,italian]{europecv}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage[none]{hyphenat}
+\usepackage[italian]{babel}
+\usepackage{fullpage}
+\IfFileExists{url.sty}{\usepackage{url}}
+                     {\newcommand{\url}{\text}}
+
+\newcommand{\newsection}{\ecvsection}
+\newcommand{\element}{\ecvitem}
+
+\setlength{\parindent}{0in}
+
+\input personal.tex
+
+\begin{document}
+\begin{europecv}
+ \ecvpersonalinfo
+\input sections/introduction.tex
+\input sections/experiences.tex
+\input sections/formazione.tex
+\input sections/euro_skill.tex
+\input sections/languages.tex
+\input sections/hobbies.tex
+\end{europecv}
+
+
+
+Autorizzo il trattamento dei miei dati personali ai sensi del Decreto Legislativo 30 giugno 2003, n. 196.
+
+\end{document} 
