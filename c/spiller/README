@@ -1,0 +1,7 @@
+howto compile
+
+gcc *.c -lpcap
+
+howto run
+
+./a.out eth0
