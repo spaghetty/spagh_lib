@@ -6,21 +6,21 @@ void finally_sip(const u_char *packet)
 {
 }
 
-void handle_udp(const u_char *packet)
+char *handle_udp(const u_char *packet)
 {
   struct udphdr *udpp = (struct udphdr *) packet;
   const u_char *next_capsule = packet+udp_packet_size;
-  printf("that'z udp payload: %s\n", next_capsule);
+  return next_capsule;
 }
 
-void handle_tcp(const u_char *packet)
+char *handle_tcp(const u_char *packet)
 {
   struct tcphdr *tcpp = (struct tcphdr *) packet;
   const u_char *next_capsule = packet+(tcpp->doff*4);
-  printf("that'z tcp payload: %s\n", next_capsule);
+  return next_capsule;
 }
 
-void handle_ip(const u_char *packet)
+char *handle_ip(const u_char *packet)
 {
   struct ip *ipp= (struct ip *) packet;
   const u_char *next_capsule = packet+(ipp->ip_hl*4);
@@ -40,19 +40,19 @@ void handle_ip(const u_char *packet)
       break;
     case 6:
       /* tcp */
-      handle_tcp(next_capsule);
+      return handle_tcp(next_capsule);
       break;
     case 7:
       /* merda */
       break;
     case 17:
       /* udp */
-      handle_udp(next_capsule);
+      return handle_udp(next_capsule);
       break;
     }
 }
 
-void handle_ether(const u_char *packet)
+char *handle_ether(const u_char *packet)
 {
   const ether_t *eth;
   eth = (ether_t *)(packet);
@@ -74,7 +74,7 @@ void handle_ether(const u_char *packet)
 #ifdef SNF_DBG
       printf("ip here \n");
 #endif
-      handle_ip(next_capsule);
+      return handle_ip(next_capsule);
       break;
     case ETHERTYPE_ARP:
 #ifdef SNF_DBG
@@ -114,13 +114,13 @@ void handle_ether(const u_char *packet)
     }
 }
 
-void start_raw(const struct pcap_pkthdr *header,
+char *start_raw(const struct pcap_pkthdr *header,
 	       const u_char *packet)
 {
   switch(dlink_type)
     {
     case DLT_EN10MB:
-      handle_ether(packet);
+      return handle_ether(packet);
       break;
     default:
       printf("unmanagiable dlink type\n");

@@ -4,8 +4,10 @@
 #include <pcap.h>
 #include "deincapsulate.h"
 
-void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
+struct bpf_program fp;
 
-int start_listen(char *dev);
+//void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
+
+pcap_t *start_listen(char *dev, char *filter_exp, pcap_handler callback);
 
 #endif /* __SPILL__ */

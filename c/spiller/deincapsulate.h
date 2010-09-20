@@ -16,15 +16,15 @@ int dlink_size;
 
 void finally_sip(const u_char *packet);
 
-void handle_udp(const u_char *packet);
+char *handle_udp(const u_char *packet);
 
-void handle_tcp(const u_char *packet);
+char *handle_tcp(const u_char *packet);
 
-void handle_ip(const u_char *packet);
+char *handle_ip(const u_char *packet);
 
-void handle_ether(const u_char *packet);
+char *andle_ether(const u_char *packet);
 
-void start_raw(const struct pcap_pkthdr *header, const u_char *packet);
+char *start_raw(const struct pcap_pkthdr *header, const u_char *packet);
 
 void setup_dlink(pcap_t *session);
 
