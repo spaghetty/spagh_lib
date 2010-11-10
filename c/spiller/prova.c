@@ -15,7 +15,7 @@ main(int argc, char *argv[]){
   if(argc>1){
     /* MAIN BLOCK */
     dev = argv[1];
-    start_listen(dev,"port 5060", my_scanner);
+    start_listen(dev,"port sip", my_scanner);
   }
   else{
     /* some errors in calling apps */

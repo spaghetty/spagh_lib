@@ -4,10 +4,13 @@ GIT_REPO="serv_tree"
 
 require "lib/hdesc.rb"
 
+import "lib/GitRake.rb"
+
 Dir.glob('serv_tree/.tasks/*.rake').each { |r| import r }
 
 task :base_conf do
   sh "touch .config"
+  sh "mkdir .git_repos"
 end
 
 desc "Task base per inizializzare il sistema di controllo"
