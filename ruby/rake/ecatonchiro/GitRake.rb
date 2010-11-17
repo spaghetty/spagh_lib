@@ -1,5 +1,14 @@
 # -*- ruby -*-
 require "date.rb"
+require 'rubygems'
+require 'redmine_client'
+require 'lib/attachment'
+
+RedmineClient::Base.configure do
+  self.site = 'http://rpmbuild:delco123@www.fastdatatel.net'
+  self.user = 'rpmbuild'
+  self.password = 'delco123'
+end
 
 desc "Creare una nuova working directory per un repository."
 task :git_create, [ :url, :repo ] do |t, args|
@@ -151,6 +160,27 @@ task :git_patch_fdate, [ :date, :dest_path, :repo ] do |t, args|
       commit = $1
       name = "%s_%s" % [$2, $3]
       sh "rake git_patch[#{commit},#{name},#{args.dest_path},#{args.repo}]"
+      issues = RedmineClient::Issue.find(:all, :params => { :subject => "#{commit}"})
+      if issues.empty?
+        sh "scp  #{args.dest_path}/#{name}.patch admin@192.168.64.1:/usr/local/src/redmine/files/"
+        
+        nissue = RedmineClient::Issue.new(:subject => "#{commit} ",
+                                          :project_id => 17,
+                                          :tracker_id => 4,
+                                          :description => "Patch relativa al commit #{commit}, in #{name}")
+        if nissue.save
+          puts nissue.id
+          prova = RedmineClient::Attachment.new({ :context_id => nissue.id,
+                                                  :context_type => "Issue",
+                                                  :filename => "#{name}.patch",
+                                                  :description => "#{commit}" })
+          if not prova.save
+            puts prova.errors.full_messages
+          end
+        else
+          puts nissue.errors.full_messages
+        end
+      end
     end
   end
 end
