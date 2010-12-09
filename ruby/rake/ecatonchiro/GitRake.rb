@@ -160,11 +160,11 @@ task :git_patch_fdate, [ :date, :dest_path, :repo ] do |t, args|
       commit = $1
       name = "%s_%s" % [$2, $3]
       sh "rake git_patch[#{commit},#{name},#{args.dest_path},#{args.repo}]"
-      issues = RedmineClient::Issue.find(:all, :params => { :subject => "#{commit}"})
+      issues = RedmineClient::Issue.find(:all, :params => { :subject => "patch_#{commit}"})
       if issues.empty?
         sh "scp  #{args.dest_path}/#{name}.patch admin@192.168.64.1:/usr/local/src/redmine/files/"
         
-        nissue = RedmineClient::Issue.new(:subject => "#{commit} ",
+        nissue = RedmineClient::Issue.new(:subject => "patch_#{commit}",
                                           :project_id => 17,
                                           :tracker_id => 4,
                                           :description => "Patch relativa al commit #{commit}, in #{name}")
