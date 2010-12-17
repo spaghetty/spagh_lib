@@ -10,12 +10,12 @@ RedmineClient::Base.configure do
   self.password = 'delco123'
 end
 
-desc "Creare una nuova working directory per un repository."
+desc "Creare una nuova working directory per un repository"
 task :git_create, [ :url, :repo ] do |t, args|
   sh "git clone #{args.url} #{GIT_REPO}/.git_repos/#{args.repo}/"
 end
 
-desc "Creare una nuova working directory per un repository."
+desc "Creare una nuova working directory per un repository"
 task :git_link, [ :repo, :name ] do |t, args|
   sh "ln -s #{args.repo} #{GIT_REPO}/.git_repos/#{args.name}"
 end
@@ -29,7 +29,7 @@ task :git_repos do
   end
 end
 
-desc "Lista degli utenti che hanno fatto dei commit."
+desc "Lista degli utenti che hanno fatto dei commit"
 task :git_users, [ :repo ] do |t, args|
   r = Array.new
   outp = IO.popen("git --git-dir=#{GIT_REPO}/.git_repos/#{args.repo}/.git log")
@@ -44,7 +44,7 @@ task :git_users, [ :repo ] do |t, args|
   end
 end
 
-desc "Lista dei commits di un utente."
+desc "Lista dei commits di un utente"
 task :git_user_commits, [ :user, :repo ] do |t, args|
   commit = ""
   author = ""
@@ -87,7 +87,7 @@ task :git_user_commits, [ :user, :repo ] do |t, args|
   end
 end
 
-desc "Lista dei commits di un utente."
+desc "Lista dei commits di un utente"
 task :git_date_commits, [ :date, :repo ] do |t, args|
   commit = ""
   author = ""
@@ -130,7 +130,7 @@ task :git_date_commits, [ :date, :repo ] do |t, args|
   end
 end
 
-desc "Crea la patch di un commit."
+desc "Crea la patch di un commit"
 task :git_patch, [ :commit, :name_patch, :dest_path, :repo ] do |t, args|
   sh "mkdir -p #{args.dest_path}"
   sh "rm -f *.patch"
@@ -138,7 +138,7 @@ task :git_patch, [ :commit, :name_patch, :dest_path, :repo ] do |t, args|
   sh "mv *.patch #{args.dest_path}/#{args.name_patch}.patch"
 end
 
-desc "Massiva generazione di tutte le patch di un utente."
+desc "Massiva generazione di tutte le patch di un utente"
 task :git_patch_fuser, [ :user, :dest_path, :repo ] do |t, args|
   outp = IO.popen("rake git_user_commits[#{args.user},#{args.repo}]")
   lines = outp.readlines
@@ -151,7 +151,7 @@ task :git_patch_fuser, [ :user, :dest_path, :repo ] do |t, args|
   end
 end
 
-desc "Massiva generazione di tutte le patch da una data."
+desc "Massiva generazione di tutte le patch da una data"
 task :git_patch_fdate, [ :date, :dest_path, :repo ] do |t, args|
   outp = IO.popen("rake git_date_commits[#{args.date},#{args.repo}]")
   lines = outp.readlines
