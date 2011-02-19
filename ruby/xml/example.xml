@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--Project Document XML File-->
+<DocumentHeader ConfiguratorVersion="1.0.0" Created="25/06/2009 15.41.01" Modified="25/06/2009 15.41.01">
+  <Project version="0.0.2" name="Prova" description="bla bla bla" directory="/usr/local/prova" file="prova.dat">
+    <ApplicationList>
+      <Application ID="78706658-98d7-48f8-8c89-826e6bd35f32" Name="PROVA" Description="">
+        <FlowBlocks>
+          <Block Type="BEGIN" Top="50" Left="58" ID="1a6d9a97-c5c9-4fe3-bd51-88a692698bfb" Name="Inizio Applicazione" Description="" ConnectorPosition="3">
+            <Statistics>
+              <Event ID="OnTransit" Flag="False" />
+            </Statistics>
+            <Connections>
+              <Connector ID="OnContinue" NextBlock="422f1ab8-a451-4655-8154-1d16a66a80b1" />
+            </Connections>
+          </Block>
+          <Block Type="END" Top="196" Left="58" ID="ef30de8d-11ef-4fb1-8454-8740ee8ed8b7" Name="Fine Applicazione" Description="" ConnectorPosition="2">
+            <Statistics>
+              <Event ID="OnTransit" Flag="False" />
+            </Statistics>
+            <Connections />
+          </Block>
+          <Block Type="RECOGNIZE" Top="108" Left="319" ID="422f1ab8-a451-4655-8154-1d16a66a80b1" Name="Testina" Description="" ConnectorPosition="3" PlayMessage="Message§74937f51-f8cf-45ca-b125-b896cc408ed4§83797054-eabe-4e8c-bced-12e77fcead6c" Variable="ApplicationVariable§§2f6068bb-dabe-4e91-ac90-b5c5e1feb546" ClearDigits="True" StopOnDigit="True" Timeout="10" BargeInType="OFF" GrammarType="DIGITS" Grammar="Grammar§§" MinItems="1" MaxItems="10">
+            <Statistics>
+              <Event ID="OnTransit" Flag="False" />
+              <Event ID="OnFinish" Flag="False" />
+              <Event ID="OnDigit" Flag="False" />
+              <Event ID="OnTimeout" Flag="False" />
+              <Event ID="OnUnrecognized" Flag="False" />
+              <Event ID="OnError" Flag="False" />
+            </Statistics>
+            <Connections>
+              <Connector ID="OnFinish" NextBlock="02f4a046-8f63-4c39-897f-7d02a65b60f0" />
+              <Connector ID="OnTimeout" NextBlock="14d5121c-8813-426e-bddc-dc6d073b8b4b" />
+              <Connector ID="OnUnrecognized" NextBlock="14d5121c-8813-426e-bddc-dc6d073b8b4b" />
+              <Connector ID="OnError" NextBlock="918edb89-fd64-401f-ae4f-529e77c17eef" />
+            </Connections>
+          </Block>
+          <Block Type="GOTOAPPLICATION" Top="219" Left="431" ID="918edb89-fd64-401f-ae4f-529e77c17eef" Name="Guasto Tecnico" Description="" ConnectorPosition="2" Application="Application§§1b45e4f8-dee4-4050-9eb4-706f2908872f">
+            <Statistics>
+              <Event ID="OnTransit" Flag="False" />
+            </Statistics>
+            <Connections />
+          </Block>
+          <Block Type="GOTOAPPLICATION" Top="209" Left="200" ID="02f4a046-8f63-4c39-897f-7d02a65b60f0" Name="Conferma" Description="" ConnectorPosition="2" Application="Application§§74badaa3-93a4-47ab-bfb9-7e306fb76f3c">
+            <Statistics>
+              <Event ID="OnTransit" Flag="False" />
+            </Statistics>
+            <Connections />
+          </Block>
+          <Block Type="GOTOAPPLICATION" Top="259" Left="279" ID="14d5121c-8813-426e-bddc-dc6d073b8b4b" Name="Gestione Errori" Description="" ConnectorPosition="2" Application="Application§§e03b0520-bcb3-44dc-bedf-039bab565dce">
+            <Statistics>
+              <Event ID="OnTransit" Flag="False" />
+            </Statistics>
+            <Connections />
+          </Block>
+        </FlowBlocks>
+      </Application>
+    </ApplicationList>
+  </Project>
+</DocumentHeader>
