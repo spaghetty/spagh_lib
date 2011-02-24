@@ -1,0 +1,18 @@
+rake setup[eth0,<gwaddr>]
+
+ifup eth1 (for all NIC)
+get default gateway address
+
+remove it from default rute list
+
+rake setup[eth1,<gwaddr>]
+
+check that connection is working with ping
+
+ping -I ip_of_eth1 www.google.com
+
+
+split -a 3 -b 50MB Training_day.avi pending_TD_
+
+
+cat pending* > file_name.avi
