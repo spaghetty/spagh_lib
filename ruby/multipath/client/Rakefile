@@ -58,14 +58,16 @@ task :test do
 end
 
 desc "set up interface table for specific nic"
-task :setup, [:nic,:gw] do |t, args|
+task :setup, [:nic,:is_default] do |t, args|
   result = %x[ip addr show dev #{args[:nic]}| grep 'inet ']
   result =~ /inet (.*\/\d{1,2})/
+  gw = %x[route -n | grep #{args[:nic]} | grep "^0.0.0.0" | awk '{ print $2 }'].strip
+  %x[route del -net 0.0.0.0 gw #{gw} dev #{args[:nic]}] if !args.to_hash.key?(:is_default)
   b_ro = "sudo ip route add"
   b_ru = "sudo ip rule add"
   tn = (args[:nic].reverse.to_i)
   ipad = IpAddr.new $1
-  ipad.gw = "#{args[:gw]}"
+  ipad.gw = "#{gw}"
   #sh "sudo echo '20#{tn} T#{tn}' >> /etc/iproute2/rt_tables"
   sh "#{b_ro} #{ipad.get_net} dev #{args[:nic]} src #{ipad.ip} table 20#{tn}"
   sh "#{b_ro} default via #{ipad.gw} table 20#{tn}"
