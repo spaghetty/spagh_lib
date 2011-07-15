@@ -1,18 +1,12 @@
-rake setup[eth0,<gwaddr>]
+rake [eth0] -> for all cards
+rake [eth0,default] -> if you want to use default gateway of this card as system default
 
-ifup eth1 (for all NIC)
-get default gateway address
-
-remove it from default rute list
-
-rake setup[eth1,<gwaddr>]
-
+## do checks for connections ####
 check that connection is working with ping
 
 ping -I ip_of_eth1 www.google.com
 
+#####
 
-split -a 3 -b 50MB Training_day.avi pending_TD_
-
-
+### rebuild file ####
 cat pending* > file_name.avi

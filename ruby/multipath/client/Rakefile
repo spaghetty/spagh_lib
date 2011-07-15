@@ -62,7 +62,7 @@ task :setup, [:nic,:is_default] do |t, args|
   result = %x[ip addr show dev #{args[:nic]}| grep 'inet ']
   result =~ /inet (.*\/\d{1,2})/
   gw = %x[route -n | grep #{args[:nic]} | grep "^0.0.0.0" | awk '{ print $2 }'].strip
-  %x[route del -net 0.0.0.0 gw #{gw} dev #{args[:nic]}] if !args.to_hash.key?(:is_default)
+  %x[sudo route del -net 0.0.0.0 gw #{gw} dev #{args[:nic]}] if !args.to_hash.key?(:is_default)
   b_ro = "sudo ip route add"
   b_ru = "sudo ip rule add"
   tn = (args[:nic].reverse.to_i)

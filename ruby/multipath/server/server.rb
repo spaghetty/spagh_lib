@@ -38,6 +38,8 @@ class MultipathServ < EM::Connection
         @f.write(data)
         @data_count=@data_count+data.size
       else
+        tmp_size= @f_size-@data_count
+        @f.write(data[0..tmp_size-1])
         @counter=5
         puts "gestire gli spezzoni #{@data_count+data.size} != #{@f_size}"
       end
