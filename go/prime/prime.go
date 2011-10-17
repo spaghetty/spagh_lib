@@ -7,16 +7,16 @@ import (
 func filter(prime int, in, out chan int){ // just have a filter for each prime number
 	fmt.Println("this value", prime, "is prime")
 	for{
-		value := <- in
+		value := <-in
 		if value < 0 {   // number stream ended start closing routine
 			if value == -1 {
-				out <- value
-				exit_turn := <- out
-				in <- exit_turn -1 
+				out <-value
+				exit_turn := <-out
+				in <-(exit_turn - 1)
 				return
 			}
 		} else if value%prime!= 0 {
-			out <- value
+			out <-value
 		} // do nothing for non prime number
 	}	
 }
@@ -25,9 +25,9 @@ func terminator(in chan int){ // the last node when something get here we have m
 	incoming := in
 	value := 0
 	for {
-		value = <- incoming
+		value = <-incoming
 		if value < 0 {
-			in <- (value - 1)
+			in <-(value - 1)
 			return
 		} else {
 			tmp := incoming
@@ -41,18 +41,18 @@ func generate(out, pipe chan int){
 	next := make(chan int)
 	go terminator(next)
 	for {
-		value := <- pipe
+		value := <-pipe
 		if value < 0 {
 			if value == -1 { // start quiting things
-				next <- value
-				exit_turn := <- next
-				pipe <- exit_turn - 1
+				next <-value
+				exit_turn := <-next
+				pipe <-(exit_turn - 1)
 				return
 			}
 		} else if value == 1 {
 			fmt.Println("this value", value, "is prime")
 		} else {
-			next <- value
+			next <-value
 		}
 	}
 }
@@ -64,11 +64,11 @@ func main() {
 	//go prime_collector(prime)
 	go generate(prime, pipe)
 	for i:=1; i<10000; i++ {
-	pipe <- i
+	pipe <-i
 	}
 
-	pipe <- -1
-	 <- pipe // wait for each goroutine close
+	pipe <--1
+	_ = <- pipe // wait for each goroutine close
 }
 
 
