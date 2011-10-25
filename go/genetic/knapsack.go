@@ -73,7 +73,7 @@ func (g* GeneticElement)Crossover(m* GeneticElement, f* GeneticElement ) {
                 }
                 guess = rand.Int()%100  // generate a mutation into genoma
                 if guess<=1 {
-                        mutatedbit:= uint(rand.Int()%36)
+                        mutatedbit:= uint(rand.Int()%len(f.tRef))
                         mMask = 0x1 << mutatedbit
                         g.chromosome = g.chromosome ^ mMask
                 }
@@ -82,6 +82,7 @@ func (g* GeneticElement)Crossover(m* GeneticElement, f* GeneticElement ) {
 		g.target = f.target
                 g.value, g.weight = evalutate(g.chromosome, g.tRef)
 		g.fitness = generate_fitness(g.weight, g.target)
+		g.initialized = true
         }
 }
 
@@ -90,12 +91,12 @@ func print_genotype(g *GeneticElement) {
 }
 
 func print_genotype_r(g *GeneticElement) {
-	fmt.Printf("result: %0#32b, %d, %d, %d, %d\n",g.chromosome, g.value, g.weight, g.fitness, g.target)
+	fmt.Printf("result: %0#32b, %d, %d, %d, %d, %v\n",g.chromosome, g.value, g.weight, g.fitness, g.target, g.initialized)
 }
 
 func build_generation(parents []*GeneticElement, childs []*GeneticElement) {
 	i:=0
-        for i<101 {
+        for i<100 {
                 m := parents[rand.Int()%100]
                 f := parents[rand.Int()%100]
                 childs[i] = new(GeneticElement)
@@ -126,7 +127,7 @@ func genetic_choose(e []Element, target int) []Element {
 	}
 	
 	a,b:=0,1
-	for i:=0; i<1; i++ {
+	for i:=0; i<100; i++ {
 		build_generation(generations[a][0:], generations[b][0:])
 		tmp:=a
 		a = b
@@ -149,7 +150,9 @@ func main() {
                 { 8, 3 },
                 { 7, 1 },
                 { 6, 5 },
-		{ 5, 2 } }
+		{ 5, 2 },
+		{ 6, 3 },
+		{ 11, 9 } }
 
         args := flag.Args()
 	rand.Seed(time.Nanoseconds() % 1e9)
