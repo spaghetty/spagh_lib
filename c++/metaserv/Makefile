@@ -1,5 +1,5 @@
 all:
-	g++ -g -o base_test src/metastart.cpp
+	g++ -lpthread -g -o base_test src/metaserver.cpp src/metaComponents.cpp src/connectionManager.cpp src/Sockets.cpp
 
 clean:
 	rm *a
