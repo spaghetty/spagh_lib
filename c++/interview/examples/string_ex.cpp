@@ -86,6 +86,20 @@ string replace(string val, string s) {
   return res;
 }
 
+void remove_dup2(string *tmp) {
+  int i=0,j=0,tail = 1;
+  for (i=1; i<tmp->length(); i++) {
+    for (j=0; j<tail; j++) {
+      if ((*tmp)[i]==(*tmp)[j]) break;
+    }
+    if (j==tail) {
+      (*tmp)[tail] = (*tmp)[i];
+      tail++;
+    }
+  }
+  tmp->erase(tail,tmp->length()-tail);
+}
+
 int main(int argn, char **argv) {
   cout << ((ex_1_single("cavoli a merenda"))?"True":"False") << endl;
   cout << ((ex_1_single("prova 123"))?"True":"False") << endl;
@@ -100,4 +114,9 @@ int main(int argn, char **argv) {
   cout << ((anagram("prova", "pluto"))?"True":"False") << endl;
   cout << ((anagram("caso", "cosa"))?"True":"False") << endl;
   cout << replace("20%","prova 123 abc") << endl;
+  string tmp = "pravaaaaaaaaaaaaaaaaa";
+  cout << tmp.length() << endl;
+  remove_dup2(&tmp);
+  cout << tmp.length() << endl;
+  cout << tmp << endl;
 }
