@@ -1,6 +1,9 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <random>
+#include <v8.h>
+#include <sys/stat.h>
 #include <boost/program_options.hpp>
 #include <Poco/Net/SocketAddress.h>
 #include <Poco/Net/ServerSocket.h>
@@ -11,6 +14,8 @@
 #define EMPTY 95
 
 namespace po=boost::program_options;
+
+std::string aiFileName = "aiplayer";
 
 typedef struct move_t {
   int x;
@@ -93,11 +98,11 @@ public:
     return true;
   }
 
-  char get(int x, int y) {
+  char get(int x, int y) const {
     return desk[x][y];
   }
 
-  void print() {
+  void print() const {
     for ( auto i=0; i<=MAX; i++ ) {
       if(i!=MAX) {
 	std::cout << i+1 << ") ";
@@ -112,7 +117,7 @@ public:
     }
   }
 
-  bool checkStatus(const char c, std::array<int,8> &values) {
+  bool checkStatus(const char c, std::array<int,8> &values) const {
     for(auto i=0; i<MAX; i++) {
       for(auto j=0; j<MAX; j++) {
   	if(get(i,j)!= EMPTY) {
@@ -131,7 +136,7 @@ public:
     return true;
   }
 
-  std::string *serialize() {
+  std::string *serialize() const {
     auto v = new std::string();
     for(auto i=0; i<MAX; i++){
       for(auto j=0; j<MAX; j++) {
@@ -141,7 +146,7 @@ public:
     return v;
   }
 
-  bool has_space() {
+  bool has_space() const {
     return (freeSpace>0);
   }
 };
@@ -150,10 +155,10 @@ class Player {
 protected:
   char mysign;
 public:
-  Player(const char c):mysign(c){};
-  char get_sign(){ return mysign; };
-  virtual void play(Desk *d){};
-  virtual void response(int status){};
+  Player(const char c):mysign(c) {};
+  char get_sign() const { return mysign; };
+  virtual void play(Desk *d) {};
+  virtual void response(int status) const {};
 };
 
 class BasePlayer: public Player {
@@ -215,13 +220,83 @@ public:
       break;
     }    
     std::cout << ":" << x << y << std::endl;
-    //auto a = new Desk(*v);
-    //a->print();
-    //delete a;
   }
-  virtual void response(int res) {
+  virtual void response(int res) const {
     (*str) << res << std::endl << std::flush;
   }
+};
+
+class DynPlayer: public Player {
+  
+  v8::Handle<v8::Script> script;
+  std::string content;
+
+public:
+  DynPlayer(const char c): Player(c) {
+    std::string myname = aiFileName + ".js";
+    struct stat buffer;
+    if (stat(myname.c_str(),&buffer)!=0) {
+      myname = aiFileName + c + ".js";
+    }
+    std::ifstream in(myname.c_str(), std::ifstream::in);
+    
+    if (in) {
+      in.seekg(0,std::ios::end);
+      content.resize(in.tellg());
+      in.seekg(0, std::ios::beg);
+      in.read(&content[0], content.size());
+      in.close();
+    }
+    //v8::Isolate* isolate = v8::Isolate::GetCurrent();
+    //v8::HandleScope handle_scope(isolate);
+    //context = v8::Context::New(isolate);
+    //v8::Context::Scope context_scope(context);
+    //v8::Handle<v8::String> source = v8::String::New(content.c_str());
+    //script = v8::Script::Compile(source);
+
+  }
+
+  ~DynPlayer(){};
+  
+  virtual void play(Desk *d) {
+    v8::Isolate* isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope handle_scope(isolate);
+    v8::Handle<v8::Context> context = v8::Context::New(isolate);
+    v8::Context::Scope context_scope(context);
+    v8::Handle<v8::Array> deskr1 = v8::Array::New(3);
+    v8::Handle<v8::Array> deskr2 = v8::Array::New(3);
+    v8::Handle<v8::Array> deskr3 = v8::Array::New(3);
+    v8::Handle<v8::Array> desk = v8::Array::New(3);
+    deskr1->Set(0,v8::Integer::New(d->get(0,0)));
+    deskr1->Set(1,v8::Integer::New(d->get(0,1)));
+    deskr1->Set(2,v8::Integer::New(d->get(0,2)));
+    deskr2->Set(0,v8::Integer::New(d->get(1,0)));
+    deskr2->Set(1,v8::Integer::New(d->get(1,1)));
+    deskr2->Set(2,v8::Integer::New(d->get(1,2)));
+    deskr3->Set(0,v8::Integer::New(d->get(2,0)));
+    deskr3->Set(1,v8::Integer::New(d->get(2,1)));
+    deskr3->Set(2,v8::Integer::New(d->get(2,2)));
+    desk->Set(0,deskr1);
+    desk->Set(1,deskr2);
+    desk->Set(2,deskr3);
+    context->Global()->Set(v8::String::New("desk"),desk, v8::ReadOnly);
+    v8::Handle<v8::Integer> sign = v8::Integer::New(mysign);
+    context->Global()->Set(v8::String::New("_MYSIGN__"),sign, v8::ReadOnly);
+    v8::Handle<v8::Integer> empty = v8::Integer::New(EMPTY);
+    context->Global()->Set(v8::String::New("_EMPTY_"),empty, v8::ReadOnly);
+    v8::Handle<v8::String> source = v8::String::New(content.c_str());
+    script = v8::Script::Compile(source);
+    v8::Handle<v8::Value> result = script->Run();
+    
+    v8::Handle<v8::Array> val = v8::Handle<v8::Array>::Cast(result);
+
+    v8::Local<v8::Integer> vX = v8::Local<v8::Integer>::Cast(val->Get(0));
+    v8::Local<v8::Integer> vY = v8::Local<v8::Integer>::Cast(val->Get(1));
+    std::cout << vY->Value()+1 << "-"<< vX->Value()+1 << std::endl;
+    bool res = d->set(get_sign(), vX->Value(), vY->Value());
+    assert(res==true);
+  }
+
 };
 
 class AIPlayer : public Player {
@@ -352,7 +427,9 @@ Player *selector(std::string s, const char c) {
     return new AIPlayer(c);
   } else if (s=="net") {
     return new NetPlayer(c);
-  }else {
+  } else if (s=="dyn") {
+    return new DynPlayer(c);
+  } else {
     return nullptr;
   }
 }

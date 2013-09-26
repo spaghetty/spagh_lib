@@ -1,0 +1,9 @@
+message SBoard {
+	repeated int32 height=1 [packed=true];
+	repeated int32 board=2;
+}
+
+
+message Move {
+	required int32 column=3;
+}
