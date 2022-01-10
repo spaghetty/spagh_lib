@@ -6,6 +6,8 @@ use std::fmt;
 
 const CARGLYPH: &str = "🚗";
 const SHEEPGLYPH: &str = "🐏";
+const FAILGLYPH: &str = "❌";
+const SUCCESSGLYPH: &str = "✅";
 
 #[derive(Debug, PartialEq, Eq)]
 enum Prize {
@@ -91,11 +93,11 @@ fn main () {
         g.doors[player_selection()].selected = true;
         let s = show_sheep(&g);
         g.doors[s].opened = true;
-        let mut mymod = "❌";
+        let mut mymod = FAILGLYPH;
         for x in 0..3 {
             if !g.doors[x].selected && !g.doors[x].opened && g.doors[x].content == Prize::Car{
                 success= success + 1;
-                mymod = "✅";
+                mymod = SUCCESSGLYPH;
             } 
         }
         println!("{} {}", g, mymod);
