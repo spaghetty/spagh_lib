@@ -18,10 +18,14 @@ fn main() {
         if d.is_none() {
             break;
         }
-        g.play_hand();
+        let result =  g.play_hand();
+        if result.is_none() {
+            break;
+        }
         println!("new hand");
     }
     let r = g.results();
+    println!("Final results");
     for i in r {
         println!("the result for {} is {}", i.0, i.1);
     }

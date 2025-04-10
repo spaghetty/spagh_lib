@@ -70,6 +70,7 @@ impl Game for UpDown {
                             println!("you choose upper char and you got {:}", c[0]);
                             if c[0].rank > 5u8 {
                                 mut_p.score += 1;
+                                println!("you win");
                             }
                             break 'outer;
                         },
@@ -77,11 +78,13 @@ impl Game for UpDown {
                             println!("you choose lower char and you got {:}", c[0]);
                             if c[0].rank < 6u8 {
                                 mut_p.score += 1;
+                                println!("you win");
                             }
                             break 'outer
                         }
                         (_, 'q')  => {
-                            break 'outer;
+                            println!("Exiting game...");
+                            return None; 
                         },
                         (_, _) => continue
                 };
