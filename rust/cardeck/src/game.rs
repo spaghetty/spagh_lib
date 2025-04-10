@@ -65,7 +65,7 @@ impl Game for UpDown {
                 let s: String = read!();
                 for key in s.chars().enumerate() {
                     match key {
-                        (_, 'u')  => {
+                        (_, 'h')  => {
                             //play the game
                             println!("you choose upper char and you got {:}", c[0]);
                             if c[0].rank > 5u8 {

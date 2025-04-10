@@ -37,13 +37,13 @@ impl Player {
         }
     }
     
-    pub fn show_cards(&mut self, index: &[usize]) -> &mut[Rc<Card>] {
+    pub fn show_cards(&mut self, _index: &[usize]) -> &mut[Rc<Card>] {
         self.hidden_cards.make_contiguous();
         let tmp = self.hidden_cards.as_mut_slices();
         return tmp.0;
     }
 
-    pub fn recollect_cards(&mut self, index: &[usize]) {
+    pub fn recollect_cards(&mut self, _index: &[usize]) {
         self.hidden_cards.clear()
     }
 }
