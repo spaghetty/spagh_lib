@@ -1,0 +1,11 @@
+[package]
+name = "linear_regression"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+csv = "1.3.1"
+ndarray = "0.16.1"
+ndarray-linalg = { version = "0.17.0", features = ["openblas-system"] }
+rand = "0.9.1"
+serde = { version = "1.0.219", features = ["derive"] }

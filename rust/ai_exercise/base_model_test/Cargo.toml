@@ -1,0 +1,9 @@
+[package]
+name = "base_model_test"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+burn = { version = "0.17.0", features = ["autodiff", "ndarray", "train"] }
+burn-dataset = "0.17.0"
+burn-tensor = { version = "0.17.0" }
