@@ -7,10 +7,13 @@ use burn::nn::loss::CrossEntropyLossConfig;
 use burn::optim::SgdConfig;
 use burn::optim::momentum::MomentumConfig;
 use burn::prelude::*;
-use burn::record::CompactRecorder;
+use burn::record::{CompactRecorder, Recorder};
 use burn::tensor::{Tensor, backend::AutodiffBackend, backend::Backend};
 use burn::train::metric::{AccuracyMetric, LossMetric};
 use burn::train::{ClassificationOutput, LearnerBuilder, TrainOutput, TrainStep, ValidStep};
+use burn_dataset::Dataset;
+use clap::{Arg, ArgAction, Command, command};
+use rand::prelude::*;
 use std::time::Instant;
 
 type MyBackend = Autodiff<NdArray>;
@@ -108,6 +111,23 @@ impl<B: Backend> ValidStep<MnistBatch<B>, ClassificationOutput<B>> for ZeroModel
     }
 }
 
+pub fn infer<B: Backend>(artifact_dir: &str, device: B::Device, item: MnistItem) {
+    let record = CompactRecorder::new()
+        .load(format!("{artifact_dir}/model").into(), &device)
+        .expect("Trained model should exist");
+
+    let model: ZeroModel<B> = ModelConfig::new(WIDTH * HEIGHT, NUM_CLASSES.into())
+        .init(&device)
+        .load_record(record);
+
+    let label = item.label;
+    let batcher = MnistBatcher {};
+    let batch = batcher.batch(vec![item], &device);
+    let output = model.forward(batch.images);
+    let predicted = output.argmax(1).flatten::<1>(0, 1).into_scalar();
+    println!("Predicted {} Expected {:?}", predicted, label);
+}
+
 #[derive(Config, Debug)]
 struct ModelConfig {
     i: usize,
@@ -137,54 +157,75 @@ pub struct TrainingConfig {
     pub learning_rate: f64,
 }
 
+fn cli() -> Command {
+    command!().args([
+        Arg::new("training")
+            .short('t')
+            .long("train")
+            .action(ArgAction::SetTrue),
+        Arg::new("inference").short('i').long("infer"),
+    ])
+}
+
 fn main() {
     let device = Default::default();
-    let config = TrainingConfig::new(SgdConfig::new().with_momentum(Some(MomentumConfig {
-        momentum: 0.9,
-        dampening: 0.,
-        nesterov: false,
-    })));
-    config
-        .save(format!("{ARTIFACT_DIR}/config.json"))
-        .expect("Config should be saved successfully");
-
-    let model_config = ModelConfig::new(WIDTH * HEIGHT, NUM_CLASSES.into());
-    let model: ZeroModel<MyBackend> = model_config.init(&device);
-
     let dataset = MnistDataset::train();
     let test_dataset = MnistDataset::test();
 
-    let batcher = MnistBatcher::default();
+    let matches = cli().get_matches();
 
-    let dataloader_train = DataLoaderBuilder::new(batcher.clone())
-        .batch_size(config.batch_size)
-        .shuffle(config.seed)
-        .num_workers(config.num_workers)
-        .build(dataset);
+    if matches.get_flag("training") {
+        let config = TrainingConfig::new(SgdConfig::new().with_momentum(Some(MomentumConfig {
+            momentum: 0.9,
+            dampening: 0.,
+            nesterov: false,
+        })));
+        config
+            .save(format!("{ARTIFACT_DIR}/config.json"))
+            .expect("Config should be saved successfully");
 
-    let dataloader_test = DataLoaderBuilder::new(batcher)
-        .batch_size(config.batch_size)
-        .shuffle(config.seed)
-        .num_workers(config.num_workers)
-        .build(test_dataset);
+        let model_config = ModelConfig::new(WIDTH * HEIGHT, NUM_CLASSES.into());
+        let model: ZeroModel<MyBackend> = model_config.init(&device);
 
-    let learner = LearnerBuilder::new(ARTIFACT_DIR)
-        .metric_train_numeric(AccuracyMetric::new())
-        .metric_valid_numeric(AccuracyMetric::new())
-        .metric_train_numeric(LossMetric::new())
-        .metric_valid_numeric(LossMetric::new())
-        .with_file_checkpointer(CompactRecorder::new())
-        .devices(vec![device.clone()])
-        .num_epochs(config.num_epochs)
-        .summary()
-        .build(model, config.optimizer.init(), config.learning_rate);
+        let batcher = MnistBatcher::default();
 
-    let now = Instant::now();
-    let model_trained = learner.fit(dataloader_train, dataloader_test);
-    let elapsed = now.elapsed().as_secs();
-    println!("Training completed in {}m{}s", (elapsed / 60), elapsed % 60);
+        let dataloader_train = DataLoaderBuilder::new(batcher.clone())
+            .batch_size(config.batch_size)
+            .shuffle(config.seed)
+            .num_workers(config.num_workers)
+            .build(dataset);
 
-    model_trained
-        .save_file(format!("{ARTIFACT_DIR}/model"), &CompactRecorder::new())
-        .expect("Trained model should be saved successfully");
+        let dataloader_test = DataLoaderBuilder::new(batcher)
+            .batch_size(config.batch_size)
+            .shuffle(config.seed)
+            .num_workers(config.num_workers)
+            .build(test_dataset);
+
+        let learner = LearnerBuilder::new(ARTIFACT_DIR)
+            .metric_train_numeric(AccuracyMetric::new())
+            .metric_valid_numeric(AccuracyMetric::new())
+            .metric_train_numeric(LossMetric::new())
+            .metric_valid_numeric(LossMetric::new())
+            .with_file_checkpointer(CompactRecorder::new())
+            .devices(vec![device.clone()])
+            .num_epochs(config.num_epochs)
+            .summary()
+            .build(model, config.optimizer.init(), config.learning_rate);
+
+        let now = Instant::now();
+        let model_trained = learner.fit(dataloader_train, dataloader_test);
+        let elapsed = now.elapsed().as_secs();
+        println!("Training completed in {}m{}s", (elapsed / 60), elapsed % 60);
+
+        model_trained
+            .save_file(format!("{ARTIFACT_DIR}/model"), &CompactRecorder::new())
+            .expect("Trained model should be saved successfully");
+    } else {
+        let mut rng = rand::rng();
+        for _ in 0..200 {
+            let i = rng.random_range(0..1000);
+            let item = dataset.get(i).unwrap();
+            infer::<MyBackend>(ARTIFACT_DIR, device, item);
+        }
+    }
 }
